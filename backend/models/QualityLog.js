@@ -1,4 +1,4 @@
-import mongoose from "mongoose";
+const mongoose = require('mongoose');
 
 const qualityLogSchema = new mongoose.Schema(
   {
@@ -48,4 +48,4 @@ const qualityLogSchema = new mongoose.Schema(
 
 const QualityLog = mongoose.model("QualityLog", qualityLogSchema);
 
-export default QualityLog;
+module.exports =  QualityLog;

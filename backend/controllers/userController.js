@@ -1,10 +1,8 @@
 const catchAsyncError = require('../middleware/catachAsyncError.js');
-const { default: User } = require('../models/userModel.js');
-const errorHandler = require('../utils/errorHandler.js');
+const User = require('../models/userModel.js');
+const ErrorHandler = require('../utils/errorHandler.js');
 const sendToken = require('../utils/sendToken.js');
-const bcrypt = require('bcryptjs')
-
-
+const bcrypt = require('bcryptjs');
 
 const register = catchAsyncError(async (req, res, next) => {
 
@@ -17,6 +15,7 @@ const register = catchAsyncError(async (req, res, next) => {
     } = req.body;
 
     const existingUser = await User.findOne({ email });
+
     if (existingUser) {
         return next(
             new ErrorHandler("User already exists", 400)
@@ -33,6 +32,8 @@ const register = catchAsyncError(async (req, res, next) => {
         phone
     });
 
+    user.password = undefined;
+
     sendToken(user, 201, res);
 
 });
@@ -45,7 +46,6 @@ const login = catchAsyncError(async (req, res, next) => {
     } = req.body;
 
     if (!email || !password) {
-
         return next(
             new ErrorHandler(
                 "Please enter email and password",
@@ -57,7 +57,6 @@ const login = catchAsyncError(async (req, res, next) => {
     const user = await User.findOne({ email });
 
     if (!user) {
-
         return next(
             new ErrorHandler(
                 "Invalid email or password",
@@ -66,14 +65,12 @@ const login = catchAsyncError(async (req, res, next) => {
         );
     }
 
-
     const isPasswordMatched = await bcrypt.compare(
         password,
         user.password
     );
 
     if (!isPasswordMatched) {
-
         return next(
             new ErrorHandler(
                 "Invalid email or password",
@@ -86,9 +83,13 @@ const login = catchAsyncError(async (req, res, next) => {
 
     await user.save();
 
+    user.password = undefined;
+
     sendToken(user, 200, res);
 
 });
 
-
-
+module.exports = {
+    register,
+    login
+};
