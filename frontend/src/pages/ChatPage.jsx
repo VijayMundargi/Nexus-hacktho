@@ -8,19 +8,24 @@ import {
     Bot,
     SendHorizonal,
     User,
-    Sparkles,
-    ShieldCheck,
-    Clock3,
     CheckCircle2,
     Package,
     Activity,
-    Workflow,
     AlertTriangle,
+    BarChart3,
+    PackageCheck,
+    Sparkles,
 } from 'lucide-react';
+
+import {
+    motion,
+} from 'framer-motion';
 
 import API from '../api/axios';
 
 import Navbar from '../components/Navbar';
+
+
 
 
 function ChatPage() {
@@ -37,9 +42,10 @@ function ChatPage() {
     const [error, setError] =
     useState('');
 
-
     const messagesEndRef =
     useRef(null);
+
+
 
 
     const scrollToBottom = () => {
@@ -50,6 +56,8 @@ function ChatPage() {
     };
 
 
+
+
     useEffect(() => {
 
         scrollToBottom();
@@ -58,9 +66,12 @@ function ChatPage() {
 
 
 
+
     const sendMessage = async () => {
 
         if (!message.trim()) return;
+
+
 
 
         const userMessage = {
@@ -71,6 +82,8 @@ function ChatPage() {
         };
 
 
+
+
         setMessages((prev) => [
 
             ...prev,
@@ -79,9 +92,13 @@ function ChatPage() {
         ]);
 
 
+
+
         setLoading(true);
 
         setError('');
+
+
 
 
         try {
@@ -95,12 +112,16 @@ function ChatPage() {
             );
 
 
+
+
             const aiMessage = {
 
                 type: 'ai',
 
                 content: data,
             };
+
+
 
 
             setMessages((prev) => [
@@ -111,11 +132,17 @@ function ChatPage() {
             ]);
 
 
+
+
             setMessage('');
 
         } catch (error) {
 
+            console.log(error);
+
             setError(
+
+                error.response?.data?.description ||
 
                 error.response?.data?.message ||
 
@@ -127,6 +154,7 @@ function ChatPage() {
             setLoading(false);
         }
     };
+
 
 
 
@@ -143,86 +171,118 @@ function ChatPage() {
 
 
 
-    return (
 
-        <div className='min-h-screen bg-[#f5f7f7]'>
+    const renderAIResponse = (
+        content
+    ) => {
 
-            <Navbar />
-
-
-            <div className='max-w-7xl mx-auto p-3 sm:p-5 lg:p-8'>
-
-
-                <div className='overflow-hidden rounded-[32px] border border-slate-200 bg-white shadow-sm'>
-
-
-                    <div className='relative overflow-hidden border-b border-slate-200 bg-gradient-to-r from-blue-600 via-indigo-600 to-violet-600 px-5 sm:px-8 py-7'>
+        const {
+            action,
+            title,
+            description,
+            data,
+        } = content;
 
 
-                        <div className='absolute top-0 right-0 w-72 h-72 bg-white/10 rounded-full blur-3xl'></div>
 
 
-                        <div className='relative z-10 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6'>
+        // =========================================
+        // CREATE ORDER
+        // =========================================
+
+        if (
+            action ===
+            'create_order'
+        ) {
+
+            return (
+
+                <div className='overflow-hidden rounded-[32px] border border-emerald-100 bg-white shadow-[0_10px_40px_rgba(16,185,129,0.06)]'>
 
 
-                            <div>
+                    {/* HEADER */}
 
-                                <div className='inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/15 backdrop-blur-md text-white text-sm font-semibold mb-5'>
+                    <div className='relative overflow-hidden bg-gradient-to-r from-emerald-500 via-green-500 to-teal-500 px-5 sm:px-8 py-7 text-white'>
 
-                                    <Sparkles className='w-4 h-4' />
 
-                                    AI Manufacturing Workspace
+                        <div className='absolute top-0 right-0 w-60 h-60 bg-white/10 rounded-full blur-3xl'></div>
+
+
+
+
+                        <div className='relative z-10 flex flex-col xl:flex-row xl:items-center xl:justify-between gap-6'>
+
+
+                            <div className='flex items-center gap-5'>
+
+
+                                <div className='flex items-center justify-center w-16 h-16 rounded-[30px] bg-white/15 backdrop-blur-md shrink-0 shadow-lg'>
+
+                                    <Package className='w-8 h-8' />
 
                                 </div>
 
 
-                                <h1 className='text-3xl sm:text-4xl font-black text-white'>
-                                    AI Operations Assistant
-                                </h1>
 
 
-                                <p className='text-blue-100 mt-3 leading-8 max-w-2xl text-sm sm:text-base'>
-                                    Create manufacturing orders,
-                                    update workflow status,
-                                    track inspections,
-                                    and automate operational tasks
-                                    through intelligent AI conversations.
-                                </p>
+                                <div>
+
+                                    <h3 className='text-3xl font-black tracking-tight'>
+                                        {title}
+                                    </h3>
+
+                                    <p className='text-emerald-100 mt-2 leading-7'>
+                                        {description}
+                                    </p>
+
+                                </div>
 
                             </div>
 
 
 
 
-                            <div className='grid grid-cols-2 gap-4'>
+                            <div className='flex flex-wrap gap-3'>
 
 
-                                <div className='bg-white/10 backdrop-blur-md border border-white/10 rounded-3xl p-4 min-w-[140px]'>
+                                <div className='inline-flex items-center gap-3 px-5 py-4 rounded-2xl bg-white/15 border border-white/10 backdrop-blur-md'>
 
-                                    <Workflow className='text-white mb-3 w-6 h-6' />
 
-                                    <p className='text-blue-100 text-sm'>
-                                        Workflow
-                                    </p>
+                                    <CheckCircle2 className='w-6 h-6 text-white' />
 
-                                    <h3 className='text-xl font-black text-white mt-1'>
-                                        Active
-                                    </h3>
+                                    <div>
+
+                                        <p className='text-xs uppercase tracking-wider text-emerald-100'>
+                                            Status
+                                        </p>
+
+                                        <h4 className='font-bold text-lg'>
+                                            {data?.status}
+                                        </h4>
+
+                                    </div>
 
                                 </div>
 
 
-                                <div className='bg-white/10 backdrop-blur-md border border-white/10 rounded-3xl p-4 min-w-[140px]'>
 
-                                    <Activity className='text-white mb-3 w-6 h-6' />
 
-                                    <p className='text-blue-100 text-sm'>
-                                        AI Engine
-                                    </p>
+                                <div className='inline-flex items-center gap-3 px-5 py-4 rounded-2xl bg-white/15 border border-white/10 backdrop-blur-md'>
 
-                                    <h3 className='text-xl font-black text-white mt-1'>
-                                        Online
-                                    </h3>
+
+                                    <Activity className='w-6 h-6 text-white' />
+
+                                    <div>
+
+                                        <p className='text-xs uppercase tracking-wider text-emerald-100'>
+                                            Priority
+                                        </p>
+
+                                        <h4 className='font-bold text-lg'>
+                                            {data?.priority}
+                                        </h4>
+
+                                    </div>
 
                                 </div>
 
@@ -235,390 +295,436 @@ function ChatPage() {
 
 
 
-                    <div className='h-[65vh] sm:h-[70vh] overflow-y-auto bg-[#f8faf9] px-3 sm:px-6 py-6'>
+                    {/* CONTENT */}
+
+                    <div className='p-5 sm:p-8 space-y-7'>
+
+
+                        {/* TOP INFO */}
+
+                        <div className='grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-5'>
+
+
+                            <InfoCard
+                                title='Order Number'
+                                value={data?.orderNumber}
+                            />
+
+                            <InfoCard
+                                title='Product Code'
+                                value={data?.productCode}
+                            />
+
+                            <InfoCard
+                                title='Workflow Stage'
+                                value={
+                                    data?.workflow
+                                    ?.currentStage
+                                }
+                                highlight='text-blue-600'
+                            />
+
+                            <InfoCard
+                                title='Workflow Progress'
+                                value={`${
+                                    data?.workflow
+                                    ?.progress
+                                }%`}
+                                highlight='text-emerald-600'
+                            />
+
+                        </div>
+
+
+
+
+                        {/* PRODUCT DETAILS */}
+
+                        <div className='grid grid-cols-1 md:grid-cols-2 gap-5'>
+
+
+                            <InfoCard
+                                title='Part Name'
+                                value={data?.partName}
+                            />
+
+                            <InfoCard
+                                title='Material'
+                                value={data?.material}
+                            />
+
+                            <InfoCard
+                                title='Quantity'
+                                value={data?.quantity}
+                            />
+
+                            <InfoCard
+                                title='Deadline'
+                                value={
+                                    new Date(
+                                        data?.deadline
+                                    ).toLocaleDateString()
+                                }
+                            />
+
+                        </div>
+
+
+
+
+                        {/* WORKFLOW */}
+
+                        <div className='rounded-[30px] border border-slate-200 bg-[#f8faf9] p-6 sm:p-7'>
+
+
+                            <div className='flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-5'>
+
+
+                                <div>
+
+                                    <h3 className='text-2xl font-black text-slate-900'>
+                                        Workflow Tracking
+                                    </h3>
+
+                                    <p className='text-slate-500 mt-1'>
+                                        Real-time manufacturing workflow progress
+                                    </p>
+
+                                </div>
+
+
+
+
+                                <div className='inline-flex items-center gap-3 px-5 py-3 rounded-2xl bg-emerald-50 border border-emerald-200'>
+
+
+                                    <PackageCheck className='w-5 h-5 text-emerald-600' />
+
+                                    <span className='font-bold text-emerald-700'>
+                                        {
+                                            data?.workflow
+                                            ?.progress
+                                        }%
+                                        Complete
+                                    </span>
+
+                                </div>
+
+                            </div>
+
+
+
+
+                            <div className='w-full h-5 bg-white rounded-full overflow-hidden'>
+
+
+                                <motion.div
+                                    initial={{
+                                        width: 0,
+                                    }}
+                                    animate={{
+                                        width:
+                                        `${data?.workflow?.progress || 0}%`
+                                    }}
+                                    transition={{
+                                        duration: 1,
+                                    }}
+                                    className='h-full bg-gradient-to-r from-emerald-500 via-green-500 to-teal-500 rounded-full'
+                                ></motion.div>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+            );
+        }
+
+
+
+
+        // =========================================
+        // ANALYTICS
+        // =========================================
+
+        if (
+            action ===
+            'analytics'
+        ) {
+
+            return (
+
+                <div className='overflow-hidden rounded-[32px] border border-emerald-100 bg-white shadow-[0_10px_40px_rgba(16,185,129,0.06)]'>
+
+
+                    <div className='bg-gradient-to-r from-emerald-500 via-green-500 to-teal-500 px-6 py-7 text-white'>
+
+
+                        <div className='flex items-center gap-5'>
+
+
+                            <div className='w-16 h-16 rounded-3xl bg-white/15 flex items-center justify-center'>
+
+                                <BarChart3 className='w-8 h-8' />
+
+                            </div>
+
+
+
+
+                            <div>
+
+                                <h3 className='text-3xl font-black'>
+                                    {title}
+                                </h3>
+
+                                <p className='text-emerald-100 mt-2'>
+                                    {description}
+                                </p>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+
+
+
+                    <div className='grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-5 p-6'>
+
+
+                        <AnalyticsCard
+                            title='Total Orders'
+                            value={data?.totalOrders}
+                        />
+
+                        <AnalyticsCard
+                            title='Accepted'
+                            value={data?.acceptedOrders}
+                            color='text-emerald-600'
+                        />
+
+                        <AnalyticsCard
+                            title='In Review'
+                            value={data?.reviewOrders}
+                            color='text-orange-500'
+                        />
+
+                        <AnalyticsCard
+                            title='Received'
+                            value={data?.receivedOrders}
+                            color='text-blue-600'
+                        />
+
+                    </div>
+
+                </div>
+            );
+        }
+
+
+
+
+        // =========================================
+        // DEFAULT
+        // =========================================
+
+        return (
+
+            <div className='rounded-[28px] border border-slate-200 bg-white p-6 shadow-sm'>
+
+                <h3 className='text-2xl font-black text-slate-900'>
+                    {title}
+                </h3>
+
+                <p className='text-slate-600 mt-4 leading-8'>
+                    {description}
+                </p>
+
+            </div>
+        );
+    };
+
+
+
+
+    return (
+
+        <div className='min-h-screen bg-[#f7faf8]'>
+
+            <Navbar />
+
+
+
+
+            <div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6'>
+
+
+                <div className='overflow-hidden rounded-[36px] border border-emerald-100 bg-white/90 backdrop-blur-xl shadow-[0_10px_40px_rgba(16,185,129,0.06)]'>
+
+
+                    {/* HERO */}
+
+                    <div className='relative overflow-hidden bg-gradient-to-r from-emerald-500 via-green-500 to-teal-500 px-5 sm:px-8 py-8'>
+
+
+                        <div className='absolute top-0 right-0 w-[320px] h-[320px] bg-white/10 rounded-full blur-3xl'></div>
+
+
+
+
+                        <div className='relative z-10 flex flex-col xl:flex-row xl:items-center xl:justify-between gap-8'>
+
+
+                            <div>
+
+                                <div className='inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/15 backdrop-blur-md text-white text-sm font-semibold mb-5'>
+
+                                    <Sparkles className='w-4 h-4' />
+
+                                    AI Manufacturing Intelligence
+
+                                </div>
+
+
+
+
+                                <h1 className='text-3xl sm:text-4xl md:text-5xl font-black text-white leading-tight'>
+                                    Smart AI
+                                    <span className='block'>
+                                        Operations Assistant
+                                    </span>
+                                </h1>
+
+
+
+
+                                <p className='text-emerald-100 mt-5 max-w-3xl leading-8 text-sm sm:text-base'>
+
+                                    Create manufacturing orders,
+                                    manage workflows,
+                                    track inspections,
+                                    monitor production analytics,
+                                    and automate enterprise operations using conversational AI.
+
+                                </p>
+
+                            </div>
+
+
+
+
+                            <div className='grid grid-cols-2 gap-4 min-w-[320px]'>
+
+
+                                <HeroStat
+                                    title='Live Orders'
+                                    value='24'
+                                />
+
+                                <HeroStat
+                                    title='AI Accuracy'
+                                    value='98%'
+                                />
+
+                                <HeroStat
+                                    title='Automation'
+                                    value='Active'
+                                />
+
+                                <HeroStat
+                                    title='Operations'
+                                    value='Live'
+                                />
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+
+
+
+                    {/* CHAT */}
+
+                    <div className='h-[68vh] overflow-y-auto bg-[#f8faf9] px-3 sm:px-6 py-6'>
 
 
                         <div className='space-y-6'>
 
 
                             {
-                                messages.map(
-                                    (
-                                        msg,
-                                        index
-                                    ) => (
+                                messages.map((msg, index) => (
+
+                                    <div
+                                        key={index}
+                                        className={`flex ${
+                                            msg.type === 'user'
+                                            ? 'justify-end'
+                                            : 'justify-start'
+                                        }`}
+                                    >
 
                                         <div
-                                            key={index}
-                                            className={`flex ${
+                                            className={`max-w-[95%] rounded-[30px] p-4 sm:p-6 ${
                                                 msg.type === 'user'
-                                                ? 'justify-end'
-                                                : 'justify-start'
+                                                ? 'bg-gradient-to-r from-emerald-500 to-green-600 text-white shadow-lg'
+                                                : ''
                                             }`}
                                         >
 
-                                            <div
-                                                className={`w-full sm:w-auto max-w-full lg:max-w-[80%] rounded-[28px] p-4 sm:p-6 shadow-sm ${
-                                                    msg.type === 'user'
-                                                    ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white'
-                                                    : 'bg-white border border-slate-200 text-slate-800'
-                                                }`}
-                                            >
 
+                                            <div className='flex items-start gap-4'>
 
-                                                <div className='flex items-start gap-4'>
 
+                                                <div
+                                                    className={`flex items-center justify-center w-12 h-12 rounded-2xl shrink-0 ${
+                                                        msg.type === 'user'
+                                                        ? 'bg-white/15'
+                                                        : 'bg-emerald-100'
+                                                    }`}
+                                                >
 
-                                                    <div
-                                                        className={`flex items-center justify-center w-12 h-12 rounded-2xl shrink-0 ${
-                                                            msg.type === 'user'
-                                                            ? 'bg-white/15'
-                                                            : 'bg-slate-100'
-                                                        }`}
-                                                    >
+                                                    {
+                                                        msg.type === 'user'
+                                                        ? (
+                                                            <User className='w-5 h-5' />
+                                                        ) : (
+                                                            <Bot className='w-5 h-5 text-emerald-700' />
+                                                        )
+                                                    }
 
-                                                        {
-                                                            msg.type === 'user'
-                                                            ? (
-                                                                <User className='w-5 h-5' />
-                                                            ) : (
-                                                                <Bot className='w-5 h-5 text-blue-600' />
-                                                            )
-                                                        }
+                                                </div>
 
-                                                    </div>
 
 
 
+                                                <div className='flex-1'>
 
-                                                    <div className='flex-1 min-w-0 overflow-hidden'>
-
-
-                                                        {
-                                                            msg.type === 'ai'
-                                                            ? (
-
-                                                                <div className='space-y-5'>
-
-
-                                                                    <div className='flex items-center gap-3 mb-4'>
-
-                                                                        <div className='w-10 h-10 rounded-2xl bg-blue-100 flex items-center justify-center'>
-
-                                                                            <Sparkles className='w-5 h-5 text-blue-600' />
-
-                                                                        </div>
-
-
-                                                                        <div>
-
-                                                                            <h3 className='font-bold text-slate-900'>
-                                                                                AI Assistant
-                                                                            </h3>
-
-                                                                            <p className='text-slate-500 text-sm'>
-                                                                                Workflow processed successfully
-                                                                            </p>
-
-                                                                        </div>
-
-                                                                    </div>
-
-
-
-
-                                                                    {
-                                                                        msg.content?.type ===
-                                                                        'order_created' && (
-
-                                                                            <div className='overflow-hidden rounded-[28px] border border-emerald-200 bg-emerald-50'>
-
-
-                                                                                <div className='bg-gradient-to-r from-emerald-500 to-green-600 px-5 sm:px-7 py-6 text-white'>
-
-
-                                                                                    <div className='flex items-center gap-5'>
-
-
-                                                                                        <div className='flex items-center justify-center w-14 h-14 rounded-3xl bg-white/15'>
-
-                                                                                            <Package className='w-7 h-7' />
-
-                                                                                        </div>
-
-
-                                                                                        <div>
-
-                                                                                            <h3 className='text-2xl font-black'>
-                                                                                                Manufacturing Order Created
-                                                                                            </h3>
-
-                                                                                            <p className='text-emerald-100 mt-2'>
-                                                                                                AI successfully generated a manufacturing workflow order.
-                                                                                            </p>
-
-                                                                                        </div>
-
-                                                                                    </div>
-
-                                                                                </div>
-
-
-
-
-                                                                                <div className='p-5 sm:p-7 grid grid-cols-1 md:grid-cols-2 gap-5'>
-
-
-                                                                                    <div className='rounded-3xl bg-white border border-emerald-100 p-5'>
-
-                                                                                        <p className='text-slate-500 text-sm'>
-                                                                                            Part Name
-                                                                                        </p>
-
-                                                                                        <h3 className='text-xl font-black text-slate-900 mt-3'>
-                                                                                            {
-                                                                                                msg.content.order?.partName
-                                                                                            }
-                                                                                        </h3>
-
-                                                                                    </div>
-
-
-
-
-                                                                                    <div className='rounded-3xl bg-white border border-emerald-100 p-5'>
-
-                                                                                        <p className='text-slate-500 text-sm'>
-                                                                                            Material
-                                                                                        </p>
-
-                                                                                        <h3 className='text-xl font-black text-slate-900 mt-3'>
-                                                                                            {
-                                                                                                msg.content.order?.material
-                                                                                            }
-                                                                                        </h3>
-
-                                                                                    </div>
-
-
-
-
-                                                                                    <div className='rounded-3xl bg-white border border-emerald-100 p-5'>
-
-                                                                                        <p className='text-slate-500 text-sm'>
-                                                                                            Quantity
-                                                                                        </p>
-
-                                                                                        <h3 className='text-xl font-black text-slate-900 mt-3'>
-                                                                                            {
-                                                                                                msg.content.order?.quantity
-                                                                                            }
-                                                                                        </h3>
-
-                                                                                    </div>
-
-
-
-
-                                                                                    <div className='rounded-3xl bg-white border border-emerald-100 p-5'>
-
-                                                                                        <p className='text-slate-500 text-sm'>
-                                                                                            Deadline
-                                                                                        </p>
-
-                                                                                        <h3 className='text-xl font-black text-slate-900 mt-3'>
-                                                                                            {
-                                                                                                new Date(
-                                                                                                    msg.content.order?.deadline
-                                                                                                ).toLocaleDateString()
-                                                                                            }
-                                                                                        </h3>
-
-                                                                                    </div>
-
-                                                                                </div>
-
-
-
-
-                                                                                <div className='px-5 sm:px-7 pb-7 flex flex-wrap gap-3'>
-
-
-                                                                                    <div className='inline-flex items-center gap-2 px-4 py-2 rounded-2xl bg-blue-50 border border-blue-200 text-blue-700 text-sm font-semibold'>
-
-                                                                                        <Clock3 className='w-4 h-4' />
-
-                                                                                        {
-                                                                                            msg.content.order?.status
-                                                                                        }
-
-                                                                                    </div>
-
-
-
-
-                                                                                    <div className='inline-flex items-center gap-2 px-4 py-2 rounded-2xl bg-orange-50 border border-orange-200 text-orange-700 text-sm font-semibold'>
-
-                                                                                        <Activity className='w-4 h-4' />
-
-                                                                                        {
-                                                                                            msg.content.order?.priority
-                                                                                        }
-                                                                                        {' '}
-                                                                                        Priority
-
-                                                                                    </div>
-
-
-
-
-                                                                                    <div className='inline-flex items-center gap-2 px-4 py-2 rounded-2xl bg-emerald-100 text-emerald-700 text-sm font-semibold'>
-
-                                                                                        <CheckCircle2 className='w-4 h-4' />
-
-                                                                                        AI Processed Successfully
-
-                                                                                    </div>
-
-                                                                                </div>
-
-                                                                            </div>
-                                                                        )
-                                                                    }
-
-
-
-
-                                                                    {
-                                                                        msg.content?.type ===
-                                                                        'orders_filtered' && (
-
-                                                                            <div className='overflow-hidden rounded-[28px] border border-slate-200 bg-white'>
-
-
-                                                                                <div className='bg-[#f8faf9] border-b border-slate-200 px-5 sm:px-7 py-6'>
-
-
-                                                                                    <h3 className='text-2xl font-black text-slate-900'>
-                                                                                        Matching Orders
-                                                                                    </h3>
-
-
-                                                                                    <p className='text-slate-500 mt-2'>
-                                                                                        AI identified matching operational workflows.
-                                                                                    </p>
-
-                                                                                </div>
-
-
-
-
-                                                                                <div className='divide-y divide-slate-200'>
-
-
-                                                                                    {
-                                                                                        msg.content.orders?.map(
-                                                                                            (order) => (
-
-                                                                                                <div
-                                                                                                    key={order._id}
-                                                                                                    className='p-5 sm:p-7 flex flex-col xl:flex-row xl:items-center xl:justify-between gap-5'
-                                                                                                >
-
-
-                                                                                                    <div>
-
-                                                                                                        <h3 className='text-xl font-black text-slate-900'>
-                                                                                                            {order.partName}
-                                                                                                        </h3>
-
-                                                                                                        <p className='text-slate-500 mt-2'>
-                                                                                                            {order.material}
-                                                                                                        </p>
-
-                                                                                                    </div>
-
-
-
-
-                                                                                                    <div className='flex flex-wrap gap-3'>
-
-
-                                                                                                        <div className='px-4 py-2 rounded-2xl bg-blue-50 border border-blue-200 text-blue-700 text-sm font-semibold'>
-
-                                                                                                            Qty:
-                                                                                                            {' '}
-                                                                                                            {order.quantity}
-
-                                                                                                        </div>
-
-
-
-
-                                                                                                        <div className='px-4 py-2 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-700 text-sm font-semibold'>
-
-                                                                                                            {order.status}
-
-                                                                                                        </div>
-
-                                                                                                    </div>
-
-                                                                                                </div>
-                                                                                            )
-                                                                                        )
-                                                                                    }
-
-                                                                                </div>
-
-                                                                            </div>
-                                                                        )
-                                                                    }
-
-
-
-
-                                                                    {
-                                                                        !msg.content?.type && (
-
-                                                                            <div className='rounded-3xl border border-slate-200 bg-[#f8faf9] p-5'>
-
-                                                                                <p className='text-slate-700 leading-8 whitespace-pre-wrap break-words'>
-
-                                                                                    {
-                                                                                        typeof msg.content === 'string'
-                                                                                        ? msg.content
-                                                                                        : JSON.stringify(
-                                                                                            msg.content,
-                                                                                            null,
-                                                                                            2
-                                                                                        )
-                                                                                    }
-
-                                                                                </p>
-
-                                                                            </div>
-                                                                        )
-                                                                    }
-
-                                                                </div>
-
-                                                            ) : (
-
-                                                                <p className='leading-8 break-words text-sm sm:text-base'>
-                                                                    {msg.content}
-                                                                </p>
-                                                            )
-                                                        }
-
-                                                    </div>
+                                                    {
+                                                        msg.type === 'ai'
+                                                        ? renderAIResponse(
+                                                            msg.content
+                                                        )
+                                                        : (
+                                                            <p className='leading-8 text-base'>
+                                                                {msg.content}
+                                                            </p>
+                                                        )
+                                                    }
 
                                                 </div>
 
                                             </div>
 
                                         </div>
-                                    )
-                                )
+
+                                    </div>
+                                ))
                             }
 
 
@@ -630,14 +736,16 @@ function ChatPage() {
                                     <div className='flex justify-start'>
 
 
-                                        <div className='bg-white border border-slate-200 rounded-[28px] px-6 py-5 shadow-sm flex items-center gap-5'>
+                                        <div className='bg-white border border-emerald-100 rounded-[28px] px-6 py-5 shadow-sm flex items-center gap-5'>
 
 
-                                            <div className='w-12 h-12 rounded-2xl bg-blue-100 flex items-center justify-center'>
+                                            <div className='w-12 h-12 rounded-2xl bg-emerald-100 flex items-center justify-center'>
 
-                                                <Bot className='w-5 h-5 text-blue-600' />
+                                                <Bot className='w-5 h-5 text-emerald-700' />
 
                                             </div>
+
+
 
 
                                             <div>
@@ -647,13 +755,15 @@ function ChatPage() {
                                                 </p>
 
 
+
+
                                                 <div className='flex gap-2'>
 
-                                                    <span className='w-3 h-3 rounded-full bg-slate-300 animate-bounce'></span>
+                                                    <span className='w-3 h-3 rounded-full bg-emerald-300 animate-bounce'></span>
 
-                                                    <span className='w-3 h-3 rounded-full bg-slate-300 animate-bounce [animation-delay:0.2s]'></span>
+                                                    <span className='w-3 h-3 rounded-full bg-emerald-300 animate-bounce [animation-delay:0.2s]'></span>
 
-                                                    <span className='w-3 h-3 rounded-full bg-slate-300 animate-bounce [animation-delay:0.4s]'></span>
+                                                    <span className='w-3 h-3 rounded-full bg-emerald-300 animate-bounce [animation-delay:0.4s]'></span>
 
                                                 </div>
 
@@ -682,6 +792,8 @@ function ChatPage() {
                             }
 
 
+
+
                             <div ref={messagesEndRef}></div>
 
                         </div>
@@ -691,7 +803,9 @@ function ChatPage() {
 
 
 
-                    <div className='border-t border-slate-200 bg-white px-3 sm:px-6 py-5'>
+                    {/* INPUT */}
+
+                    <div className='border-t border-emerald-100 bg-white px-3 sm:px-6 py-5'>
 
 
                         <div className='flex flex-col sm:flex-row items-stretch sm:items-center gap-4'>
@@ -702,7 +816,7 @@ function ChatPage() {
 
                                 <input
                                     type='text'
-                                    placeholder='Ask AI to create orders, update workflow status, or track quality reports...'
+                                    placeholder='Ask AI to create orders, update workflow status, track quality inspections, or generate analytics...'
                                     value={message}
                                     onChange={(e) =>
                                         setMessage(
@@ -710,7 +824,7 @@ function ChatPage() {
                                         )
                                     }
                                     onKeyDown={handleKeyDown}
-                                    className='w-full px-6 py-4 rounded-3xl border border-slate-200 bg-[#f8faf9] outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-100 transition-all text-slate-700'
+                                    className='w-full px-6 py-4 rounded-3xl border border-emerald-100 bg-[#f8faf9] outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100 transition-all text-slate-700'
                                 />
 
                             </div>
@@ -721,7 +835,7 @@ function ChatPage() {
                             <button
                                 onClick={sendMessage}
                                 disabled={loading}
-                                className='inline-flex items-center justify-center gap-3 px-7 py-4 rounded-3xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:opacity-90 text-white font-semibold transition-all disabled:opacity-70 shadow-lg shadow-blue-100'
+                                className='inline-flex items-center justify-center gap-3 px-7 py-4 rounded-3xl bg-gradient-to-r from-emerald-500 to-green-600 hover:opacity-90 text-white font-semibold transition-all disabled:opacity-70 shadow-lg shadow-emerald-100'
                             >
 
                                 <SendHorizonal className='w-5 h-5' />
@@ -737,6 +851,88 @@ function ChatPage() {
                 </div>
 
             </div>
+
+        </div>
+    );
+}
+
+
+
+
+function HeroStat({
+    title,
+    value,
+}) {
+
+    return (
+
+        <div className='rounded-3xl bg-white/15 border border-white/10 backdrop-blur-md p-5 text-white'>
+
+            <p className='text-sm text-emerald-100'>
+                {title}
+            </p>
+
+            <h3 className='text-3xl font-black mt-3'>
+                {value}
+            </h3>
+
+        </div>
+    );
+}
+
+
+
+
+function InfoCard({
+    title,
+    value,
+    highlight,
+}) {
+
+    return (
+
+        <div className='rounded-[28px] bg-white border border-slate-200 p-6'>
+
+            <p className='text-sm text-slate-500'>
+                {title}
+            </p>
+
+            <h3 className={`text-2xl font-black mt-3 break-all ${
+                highlight || 'text-slate-900'
+            }`}>
+
+                {value || 'N/A'}
+
+            </h3>
+
+        </div>
+    );
+}
+
+
+
+
+function AnalyticsCard({
+    title,
+    value,
+    color,
+}) {
+
+    return (
+
+        <div className='rounded-3xl border border-slate-200 p-5 bg-[#f8faf9]'>
+
+            <p className='text-slate-500'>
+                {title}
+            </p>
+
+            <h2 className={`text-3xl font-black mt-3 ${
+                color || 'text-slate-900'
+            }`}>
+
+                {value || 0}
+
+            </h2>
 
         </div>
     );

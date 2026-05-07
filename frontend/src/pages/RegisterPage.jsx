@@ -1,7 +1,5 @@
 import { useState } from 'react';
-
 import { useNavigate } from 'react-router-dom';
-
 import {
     User,
     Mail,
@@ -11,384 +9,154 @@ import {
     ArrowRight,
     Bot,
 } from 'lucide-react';
-
 import API from '../api/axios';
 
-
 function RegisterPage() {
-
     const navigate = useNavigate();
-
-    const [formData, setFormData] =
-    useState({
-
+    const [formData, setFormData] = useState({
         name: '',
-
         email: '',
-
         password: '',
-
         phone: '',
-
         role: 'customer',
     });
-
-    const [loading, setLoading] =
-    useState(false);
-
-    const [error, setError] =
-    useState('');
-
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState('');
 
     const changeHandler = (e) => {
-
         setFormData({
-
             ...formData,
-
-            [e.target.name]:
-            e.target.value,
+            [e.target.name]: e.target.value,
         });
     };
 
-
-    const registerHandler =
-    async (e) => {
-
+    const registerHandler = async (e) => {
         e.preventDefault();
-
         setLoading(true);
-
         setError('');
-
         try {
-
-            const { data } =
-            await API.post(
-                '/register',
-                formData
-            );
-
-
-            localStorage.setItem(
-
-                'user',
-
-                JSON.stringify(
-                    data.user
-                )
-            );
-
-
+            const { data } = await API.post('/register', formData);
+            localStorage.setItem('user', JSON.stringify(data.user));
             navigate('/dashboard');
-
         } catch (error) {
-
-            setError(
-
-                error.response?.data
-                ?.message ||
-
-                'Registration failed'
-            );
-
+            setError(error.response?.data?.message || 'Registration failed');
         } finally {
-
             setLoading(false);
         }
     };
 
-
     return (
+        // Main Container with MongoDB Dark Forest Background [cite: 12, 89]
+        <div className="min-h-screen flex items-center justify-center p-4 sm:p-8 bg-[#001E2B] relative overflow-hidden">
+            
+            {/* Visual Depth: Aesthetic Radial Gradients [cite: 44, 89] */}
+            <div className="absolute top-[-10%] right-[-10%] w-[300px] md:w-[600px] h-[300px] md:h-[600px] bg-[#00ED64] opacity-20 blur-[120px] rounded-full"></div>
+            <div className="absolute bottom-[-10%] left-[-10%] w-[250px] md:w-[500px] h-[250px] md:h-[500px] bg-[#00684A] opacity-30 blur-[100px] rounded-full"></div>
 
-        <div className='min-h-screen bg-slate-100 flex items-center justify-center px-6 py-10'>
-
-
-            <div className='grid grid-cols-1 lg:grid-cols-2 max-w-7xl w-full bg-white rounded-[40px] overflow-hidden shadow-2xl'>
-
-
-                <div className='hidden lg:flex bg-gradient-to-br from-indigo-600 via-blue-600 to-cyan-500 p-14 flex-col justify-between text-white relative overflow-hidden'>
-
-
-                    <div className='absolute top-0 left-0 w-full h-full opacity-10 bg-[radial-gradient(circle_at_top_left,white,transparent_40%)]'></div>
-
-
-                    <div className='relative z-10'>
-
-
-                        <div className='bg-white/20 w-20 h-20 rounded-3xl flex items-center justify-center backdrop-blur-md mb-8'>
-
-                            <Bot className='w-10 h-10' />
-
+            <div className="w-full max-w-[500px] z-10">
+                <div className="bg-white rounded-2xl shadow-2xl border border-white/10 p-8 md:p-12">
+                    
+                    {/* Branding: Leaf Green accents [cite: 35, 60] */}
+                    <div className="flex items-center gap-3 mb-8">
+                        <div className="bg-[#00ED64] p-2 rounded-lg shadow-lg shadow-green-500/20">
+                            <Bot className="w-6 h-6 text-[#001E2B]" />
                         </div>
-
-
-                        <h1 className='text-5xl font-bold leading-tight mb-6'>
-                            AI Manufacturing Platform
-                        </h1>
-
-
-                        <p className='text-blue-100 text-lg leading-9 max-w-lg'>
-                            Create intelligent manufacturing workflows,
-                            automate operations,
-                            manage orders,
-                            and monitor quality reports with AI-powered automation.
-                        </p>
-
+                        <span className="font-bold text-[#001E2B] text-xl tracking-tight">AI Manufacturing</span>
                     </div>
 
-
-                    <div className='relative z-10 bg-white/10 backdrop-blur-md rounded-3xl p-6 border border-white/10 flex items-center gap-4'>
-
-
-                        <div className='w-14 h-14 rounded-2xl bg-white/20 flex items-center justify-center text-2xl'>
-                            🚀
-                        </div>
-
-
-                        <div>
-
-                            <h3 className='font-semibold text-lg'>
-                                Enterprise Manufacturing AI
-                            </h3>
-
-                            <p className='text-blue-100 text-sm mt-1'>
-                                Production-grade workflow automation
-                            </p>
-
-                        </div>
-
+                    <div className="mb-8">
+                        <h1 className="text-2xl font-bold text-slate-900 mb-2">Create Account</h1>
+                        <p className="text-slate-500 text-sm">Join the AI-powered manufacturing platform</p>
                     </div>
 
-                </div>
+                    <form onSubmit={registerHandler} className="space-y-5">
+                        {error && (
+                            <div className="bg-red-50 border-l-4 border-red-500 text-red-700 p-4 rounded text-sm">
+                                {error}
+                            </div>
+                        )}
 
+                        {/* Labels: professional Cloud Console look [cite: 36, 90] */}
+                        <div className="space-y-1.5">
+                            <label className="text-xs font-bold uppercase tracking-widest text-slate-500 ml-1">Full Name</label>
+                            <div className="relative group">
+                                <User className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-[#00ED64] transition-colors" />
+                                <input 
+                                    type="text" name="name" value={formData.name} onChange={changeHandler} required
+                                    placeholder="John Doe"
+                                    className="w-full pl-11 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:border-[#00ED64] focus:ring-4 focus:ring-green-500/10 transition-all text-sm"
+                                />
+                            </div>
+                        </div>
 
+                        <div className="space-y-1.5">
+                            <label className="text-xs font-bold uppercase tracking-widest text-slate-500 ml-1">Email Address</label>
+                            <div className="relative group">
+                                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-[#00ED64] transition-colors" />
+                                <input 
+                                    type="email" name="email" value={formData.email} onChange={changeHandler} required
+                                    placeholder="name@company.com"
+                                    className="w-full pl-11 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:border-[#00ED64] focus:ring-4 focus:ring-green-500/10 transition-all text-sm"
+                                />
+                            </div>
+                        </div>
 
-                <div className='p-8 lg:p-14 flex flex-col justify-center'>
-
-
-                    <div className='mb-10'>
-
-
-                        <h2 className='text-4xl font-bold text-slate-900 mb-3'>
-                            Create Account
-                        </h2>
-
-
-                        <p className='text-slate-500 text-lg'>
-                            Join the AI-powered manufacturing platform
-                        </p>
-
-                    </div>
-
-
-
-                    <form
-                        onSubmit={registerHandler}
-                        className='space-y-6'
-                    >
-
-                        {
-                            error && (
-
-                                <div className='bg-red-50 border border-red-200 text-red-600 rounded-2xl p-4 text-sm'>
-                                    {error}
+                        {/* Responsive Grid: Prevents squishing on Phone and Role fields  */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div className="space-y-1.5">
+                                <label className="text-xs font-bold uppercase tracking-widest text-slate-500 ml-1">Phone Number</label>
+                                <div className="relative group">
+                                    <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-[#00ED64] transition-colors" />
+                                    <input 
+                                        type="text" name="phone" value={formData.phone} onChange={changeHandler}
+                                        placeholder="123-456-7890"
+                                        className="w-full pl-11 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:border-[#00ED64] focus:ring-4 focus:ring-green-500/10 transition-all text-sm"
+                                    />
                                 </div>
-                            )
-                        }
+                            </div>
+                            <div className="space-y-1.5">
+                                <label className="text-xs font-bold uppercase tracking-widest text-slate-500 ml-1">Role</label>
+                                <div className="relative group">
+                                    <Shield className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-[#00ED64] transition-colors" />
+                                    <select 
+                                        name="role" value={formData.role} onChange={changeHandler}
+                                        className="w-full pl-11 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:border-[#00ED64] transition-all text-sm appearance-none cursor-pointer text-slate-700 font-medium"
+                                    >
+                                        <option value="customer">Customer</option>
+                                        
+                                        <option value="admin">Admin</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
 
-
-
-                        <div>
-
-                            <label className='block text-slate-700 font-semibold mb-3'>
-                                Full Name
-                            </label>
-
-
-                            <div className='flex items-center gap-3 border border-slate-200 rounded-2xl px-5 py-4 bg-slate-50 focus-within:border-blue-500'>
-
-                                <User className='text-slate-400 w-5 h-5' />
-
-                                <input
-                                    type='text'
-                                    name='name'
-                                    placeholder='Enter full name'
-                                    value={formData.name}
-                                    onChange={changeHandler}
-                                    required
-                                    className='bg-transparent outline-none w-full text-slate-700'
+                        <div className="space-y-1.5">
+                            <label className="text-xs font-bold uppercase tracking-widest text-slate-500 ml-1">Password</label>
+                            <div className="relative group">
+                                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-[#00ED64] transition-colors" />
+                                <input 
+                                    type="password" name="password" value={formData.password} onChange={changeHandler} required
+                                    placeholder="••••••••"
+                                    className="w-full pl-11 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:border-[#00ED64] focus:ring-4 focus:ring-green-500/10 transition-all text-sm"
                                 />
-
                             </div>
-
                         </div>
 
-
-
-                        <div>
-
-                            <label className='block text-slate-700 font-semibold mb-3'>
-                                Email Address
-                            </label>
-
-
-                            <div className='flex items-center gap-3 border border-slate-200 rounded-2xl px-5 py-4 bg-slate-50 focus-within:border-blue-500'>
-
-                                <Mail className='text-slate-400 w-5 h-5' />
-
-                                <input
-                                    type='email'
-                                    name='email'
-                                    placeholder='Enter email'
-                                    value={formData.email}
-                                    onChange={changeHandler}
-                                    required
-                                    className='bg-transparent outline-none w-full text-slate-700'
-                                />
-
-                            </div>
-
-                        </div>
-
-
-
-                        <div>
-
-                            <label className='block text-slate-700 font-semibold mb-3'>
-                                Phone Number
-                            </label>
-
-
-                            <div className='flex items-center gap-3 border border-slate-200 rounded-2xl px-5 py-4 bg-slate-50 focus-within:border-blue-500'>
-
-                                <Phone className='text-slate-400 w-5 h-5' />
-
-                                <input
-                                    type='text'
-                                    name='phone'
-                                    placeholder='Enter phone number'
-                                    value={formData.phone}
-                                    onChange={changeHandler}
-                                    className='bg-transparent outline-none w-full text-slate-700'
-                                />
-
-                            </div>
-
-                        </div>
-
-
-
-                        <div>
-
-                            <label className='block text-slate-700 font-semibold mb-3'>
-                                Password
-                            </label>
-
-
-                            <div className='flex items-center gap-3 border border-slate-200 rounded-2xl px-5 py-4 bg-slate-50 focus-within:border-blue-500'>
-
-                                <Lock className='text-slate-400 w-5 h-5' />
-
-                                <input
-                                    type='password'
-                                    name='password'
-                                    placeholder='Enter password'
-                                    value={formData.password}
-                                    onChange={changeHandler}
-                                    required
-                                    className='bg-transparent outline-none w-full text-slate-700'
-                                />
-
-                            </div>
-
-                        </div>
-
-
-
-                        <div>
-
-                            <label className='block text-slate-700 font-semibold mb-3'>
-                                Select Role
-                            </label>
-
-
-                            <div className='flex items-center gap-3 border border-slate-200 rounded-2xl px-5 py-4 bg-slate-50 focus-within:border-blue-500'>
-
-                                <Shield className='text-slate-400 w-5 h-5' />
-
-                                <select
-                                    name='role'
-                                    value={formData.role}
-                                    onChange={changeHandler}
-                                    className='bg-transparent outline-none w-full text-slate-700'
-                                >
-
-                                    <option value='customer'>
-                                        Customer
-                                    </option>
-
-                                    <option value='operator'>
-                                        Operator
-                                    </option>
-
-                                    <option value='admin'>
-                                        Admin
-                                    </option>
-
-                                </select>
-
-                            </div>
-
-                        </div>
-
-
-
-                        <button
-                            type='submit'
-                            disabled={loading}
-                            className='w-full bg-blue-600 hover:bg-blue-700 transition-all duration-300 text-white py-4 rounded-2xl font-semibold flex items-center justify-center gap-3 disabled:opacity-70'
+                        {/* Signature Green Button [cite: 12, 15] */}
+                        <button 
+                            type="submit" disabled={loading}
+                            className="w-full bg-[#00684A] hover:bg-[#001E2B] text-white py-3.5 rounded-lg font-bold flex items-center justify-center gap-2 transition-all shadow-lg active:scale-[0.98] disabled:opacity-70 mt-2"
                         >
-
-                            {
-                                loading
-                                ? 'Creating Account...'
-                                : (
-                                    <>
-                                        Register
-                                        <ArrowRight className='w-5 h-5' />
-                                    </>
-                                )
-                            }
-
+                            {loading ? 'Creating Account...' : (<>Register <ArrowRight className="w-4 h-4" /></>)}
                         </button>
 
-
-
-                        <div className='flex justify-center items-center gap-2 text-slate-500 pt-2'>
-
-                            <span>
-                                Already have an account?
-                            </span>
-
-                            <button
-                                type='button'
-                                onClick={() =>
-                                    navigate('/login')
-                                }
-                                className='text-blue-600 font-semibold hover:text-blue-700'
-                            >
-                                Login
-                            </button>
-
+                        <div className="text-center text-sm text-slate-500 pt-4 border-t border-slate-100">
+                            Already have an account? 
+                            <button type="button" onClick={() => navigate('/login')} className="text-[#00684A] font-bold ml-1 hover:underline">Log In</button>
                         </div>
-
                     </form>
-
                 </div>
-
             </div>
-
         </div>
     );
 }

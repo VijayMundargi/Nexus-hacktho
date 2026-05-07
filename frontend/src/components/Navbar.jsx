@@ -112,7 +112,7 @@ function Navbar() {
                         <div>
 
                             <h1 className='text-2xl font-black tracking-tight text-slate-900'>
-                                AI Manufacturing
+                                SMVR SmartCart
                             </h1>
 
                             <p className='text-sm text-slate-500 flex items-center gap-2'>

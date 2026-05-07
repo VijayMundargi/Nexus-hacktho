@@ -1,37 +1,41 @@
+
 import {
   Routes,
   Route,
   Navigate,
+  Link,
 } from 'react-router-dom';
-
-import RegisterPage from './pages/RegisterPage';
-
-import LoginPage from './pages/LoginPage';
-
-import DashboardPage from './pages/DashboardPage';
-
-import ChatPage from './pages/ChatPage';
-
-import OrdersPage from './pages/OrdersPage';
-
-import AnalyticsPage from './pages/AnalyticsPage';
-
-import ProtectedRoute from './routes/ProtectedRoute';
 
 import {
   AlertTriangle,
   Home,
 } from 'lucide-react';
 
+import RegisterPage from './pages/RegisterPage';
+import LoginPage from './pages/LoginPage';
+
+import DashboardPage from './pages/DashboardPage';
+import ChatPage from './pages/ChatPage';
+import OrdersPage from './pages/OrdersPage';
+import AnalyticsPage from './pages/AnalyticsPage';
+
+import ProtectedRoute from './routes/ProtectedRoute';
+
+
+
+
+// ==========================================
+// NOT FOUND PAGE
+// ==========================================
 
 function NotFoundPage() {
 
   return (
 
-    <div className='min-h-screen bg-slate-100 flex items-center justify-center px-6'>
+    <div className='min-h-screen bg-[#f7faf8] flex items-center justify-center px-6'>
 
 
-      <div className='bg-white rounded-[40px] shadow-2xl border border-slate-200 p-10 max-w-xl w-full text-center'>
+      <div className='bg-white rounded-[40px] shadow-xl border border-emerald-100 p-10 max-w-xl w-full text-center'>
 
 
         <div className='w-24 h-24 mx-auto rounded-3xl bg-red-100 flex items-center justify-center mb-8'>
@@ -41,32 +45,40 @@ function NotFoundPage() {
         </div>
 
 
-        <h1 className='text-6xl font-bold text-slate-900 mb-4'>
+
+
+        <h1 className='text-7xl font-black text-slate-900 mb-4'>
           404
         </h1>
 
 
-        <h2 className='text-3xl font-bold text-slate-800 mb-4'>
+
+
+        <h2 className='text-3xl font-black text-slate-800 mb-4'>
           Page Not Found
         </h2>
 
 
-        <p className='text-slate-500 leading-8 mb-10'>
-          The page you are looking for does not exist
-          or may have been moved.
+
+
+        <p className='text-slate-500 leading-8 mb-10 text-lg'>
+          The page you are looking for
+          does not exist or may have been moved.
         </p>
 
 
-        <a
-          href='/dashboard'
-          className='inline-flex items-center gap-3 bg-blue-600 hover:bg-blue-700 transition-all duration-300 text-white px-8 py-4 rounded-2xl font-semibold'
+
+
+        <Link
+          to='/dashboard'
+          className='inline-flex items-center gap-3 bg-gradient-to-r from-emerald-500 to-green-600 hover:opacity-90 transition-all duration-300 text-white px-8 py-4 rounded-2xl font-semibold shadow-lg'
         >
 
           <Home className='w-5 h-5' />
 
           Back to Dashboard
 
-        </a>
+        </Link>
 
       </div>
 
@@ -75,12 +87,20 @@ function NotFoundPage() {
 }
 
 
+
+
+// ==========================================
+// APP
+// ==========================================
+
 function App() {
 
   return (
 
     <Routes>
 
+
+      {/* ROOT */}
 
       <Route
         path='/'
@@ -93,11 +113,14 @@ function App() {
       />
 
 
+
+
+      {/* AUTH */}
+
       <Route
         path='/login'
         element={<LoginPage />}
       />
-
 
       <Route
         path='/register'
@@ -105,10 +128,13 @@ function App() {
       />
 
 
+
+
+      {/* DASHBOARD */}
+
       <Route
         path='/dashboard'
         element={
-
           <ProtectedRoute>
 
             <DashboardPage />
@@ -118,10 +144,13 @@ function App() {
       />
 
 
+
+
+      {/* CHAT */}
+
       <Route
         path='/chat'
         element={
-
           <ProtectedRoute>
 
             <ChatPage />
@@ -131,10 +160,13 @@ function App() {
       />
 
 
+
+
+      {/* ORDERS */}
+
       <Route
         path='/orders'
         element={
-
           <ProtectedRoute>
 
             <OrdersPage />
@@ -144,11 +176,16 @@ function App() {
       />
 
 
+
+
+      {/* ANALYTICS */}
+
       <Route
         path='/analytics'
         element={
-
-          <ProtectedRoute>
+          <ProtectedRoute
+            allowedRoles={['admin']}
+          >
 
             <AnalyticsPage />
 
@@ -157,14 +194,21 @@ function App() {
       />
 
 
+
+
+      {/* 404 */}
+
       <Route
         path='*'
         element={<NotFoundPage />}
       />
 
-
     </Routes>
   );
 }
 
+
+
+
 export default App;
+

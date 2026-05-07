@@ -1,4 +1,5 @@
-const model = require('../config/gemini.js');
+const model =
+require('../config/gemini.js');
 
 const catchAsyncError =
 require('../middleware/catachAsyncError.js');
@@ -10,431 +11,768 @@ const QualityLog =
 require('../models/QualityLog.js');
 
 
-const aiChat = catchAsyncError(
+
+
+// ==========================================
+// AI RESPONSE BUILDER
+// ==========================================
+
+const buildAIResponse = ({
+    action,
+    severity = 'info',
+    title,
+    description,
+    data = null,
+    meta = {},
+}) => {
+
+    return {
+
+        success: true,
+
+        action,
+
+        severity,
+
+        title,
+
+        description,
+
+        timestamp:
+        new Date(),
+
+        meta,
+
+        data,
+    };
+};
+
+
+
+
+// ==========================================
+// GEMINI RETRY SYSTEM
+// ==========================================
+
+const generateWithRetry = async (
+    prompt,
+    retries = 3
+) => {
+
+    for (
+        let i = 0;
+        i < retries;
+        i++
+    ) {
+
+        try {
+
+            const result =
+            await model.generateContent(
+                prompt
+            );
+
+            return result;
+
+        } catch (error) {
+
+            if (
+                error.status === 503 &&
+                i < retries - 1
+            ) {
+
+                console.log(
+                    `Gemini overloaded. Retrying...`
+                );
+
+                await new Promise(
+                    resolve =>
+                    setTimeout(
+                        resolve,
+                        2000
+                    )
+                );
+
+            } else {
+
+                throw error;
+            }
+        }
+    }
+};
+
+
+
+
+// ==========================================
+// AI CHAT
+// ==========================================
+
+const aiChat =
+catchAsyncError(
 async (req, res, next) => {
-    console.log(req.body);
-
-console.log(req.user);
-
-    const { message } = req.body;
-
-
-    const prompt = `
-    You are an AI manufacturing assistant.
-
-    Rules:
-    - action must ONLY be:
-      create_order
-      update_status
-      quality_update
-      get_orders
-      filter_orders
-      analytics
-
-    Extract:
-    - action
-    - partName
-    - material
-    - quantity
-    - deadline
-    - orderId
-    - status
-    - qualityNote
-    - priority
-
-    Return ONLY valid raw JSON.
-    Do not use markdown.
-    Do not use code blocks.
-    Do not explain anything.
-
-    Examples:
-
-    User:
-    Create 200 titanium flanges before July 20
-
-    Response:
-    {
-      "action":"create_order",
-      "partName":"Titanium Flange",
-      "material":"Titanium",
-      "quantity":200,
-      "deadline":"2026-07-20",
-      "priority":"Medium"
-    }
-
-    User:
-    Show all accepted orders
-
-    Response:
-    {
-      "action":"filter_orders",
-      "status":"Accepted"
-    }
-
-    User:
-    Give me analytics
-
-    Response:
-    {
-      "action":"analytics"
-    }
-
-    User:
-    Quality update on order 123 passed inspection
-
-    Response:
-    {
-      "action":"quality_update",
-      "orderId":"123",
-      "qualityNote":"Passed inspection"
-    }
-
-    User Message:
-    ${message}
-    `;
-
-
-    const result =
-    await model.generateContent(
-        prompt
-    );
-
-    const response =
-    await result.response;
-
-    const aiResponse =
-    response.text();
-
-
-    let parsedData;
-
 
     try {
 
-        const cleanedResponse =
-        aiResponse
-        .replace(/```json/g, '')
-        .replace(/```/g, '')
-        .trim();
+        const { message } =
+        req.body;
 
 
-        console.log(
-            'AI RESPONSE:',
-            cleanedResponse
-        );
 
 
-        parsedData =
-        JSON.parse(cleanedResponse);
+        const prompt = `
+        You are an AI manufacturing assistant.
 
+        Return ONLY valid JSON.
 
-        if (
-            typeof parsedData === 'string'
-        ) {
+        Allowed actions:
+        - create_order
+        - update_status
+        - quality_update
+        - get_orders
+        - filter_orders
+        - analytics
 
-            parsedData =
-            JSON.parse(parsedData);
+        IMPORTANT:
+        Use orderNumber instead of MongoDB IDs.
+
+        Examples:
+
+        User:
+        Create 200 titanium flanges before July 20
+
+        Response:
+        {
+          "action":"create_order",
+          "partName":"Titanium Flange",
+          "material":"Titanium",
+          "quantity":200,
+          "deadline":"2026-07-20",
+          "priority":"Medium",
+          "specifications":{
+            "boreSize":"80mm"
+          }
         }
 
-    } catch (error) {
+        User:
+        Mark ORD-2026-0001 as accepted
 
-        console.log(
-            'PARSE ERROR:',
-            error
+        Response:
+        {
+          "action":"update_status",
+          "orderNumber":"ORD-2026-0001",
+          "status":"Accepted"
+        }
+
+        User:
+        Quality update on ORD-2026-0001 passed inspection
+
+        Response:
+        {
+          "action":"quality_update",
+          "orderNumber":"ORD-2026-0001",
+          "qualityNote":"Passed inspection"
+        }
+
+        User:
+        Show all accepted orders
+
+        Response:
+        {
+          "action":"filter_orders",
+          "status":"Accepted"
+        }
+
+        User Message:
+        ${message}
+        `;
+
+
+
+
+        // ==========================================
+        // GEMINI RESPONSE
+        // ==========================================
+
+        const result =
+        await generateWithRetry(
+            prompt
         );
 
-        console.log(
-            'RAW AI RESPONSE:',
+        const response =
+        await result.response;
+
+        const aiResponse =
+        response.text();
+
+
+
+
+        // ==========================================
+        // PARSE RESPONSE
+        // ==========================================
+
+        let parsedData;
+
+        try {
+
+            const cleanedResponse =
             aiResponse
-        );
+            .replace(/```json/g, '')
+            .replace(/```/g, '')
+            .trim();
 
-        return res.status(400).json({
+            parsedData =
+            JSON.parse(cleanedResponse);
 
-            success: false,
+        } catch (error) {
 
-            message:
-            'Invalid AI JSON response',
+            console.log(
+                'PARSE ERROR:',
+                error
+            );
 
-            aiResponse,
-        });
-    }
+            console.log(
+                'RAW AI RESPONSE:',
+                aiResponse
+            );
 
-
-
-    if (
-        parsedData.action ===
-        'create_order'
-    ) {
-
-        const order =
-        await Order.create({
-
-            partName:
-            parsedData.partName,
-
-            material:
-            parsedData.material,
-
-            quantity:
-            parsedData.quantity,
-
-            deadline:
-            parsedData.deadline,
-
-            priority:
-            parsedData.priority ||
-            'Medium',
-
-            createdBy:
-            req.user.id,
-        });
-
-
-        return res.status(201).json({
-
-            success: true,
-
-            type:
-            'order_created',
-
-            message:
-            'Manufacturing order created successfully',
-
-            order,
-        });
-    }
-
-
-
-    if (
-        parsedData.action ===
-        'update_status'
-    ) {
-
-        const order =
-        await Order.findById(
-            parsedData.orderId
-        );
-
-
-        if (!order) {
-
-            return res.status(404).json({
+            return res.status(400).json({
 
                 success: false,
 
-                message:
-                'Order not found',
+                action:
+                'parse_error',
+
+                severity:
+                'error',
+
+                title:
+                'AI Parsing Failed',
+
+                description:
+                'AI returned invalid JSON.',
             });
         }
 
 
-        order.status =
-        parsedData.status;
-
-        await order.save();
 
 
-        return res.status(200).json({
+        // ==========================================
+        // CREATE ORDER
+        // ==========================================
 
-            success: true,
+        if (
+            parsedData.action ===
+            'create_order'
+        ) {
 
-            type:
-            'status_updated',
+            const order =
+            await Order.create({
 
-            message:
-            'Order status updated successfully',
+                partName:
+                parsedData.partName
+                || 'Custom Part',
 
-            order,
-        });
-    }
+                material:
+                parsedData.material
+                || 'Steel',
+
+                quantity:
+                parsedData.quantity
+                || 1,
+
+                deadline:
+                parsedData.deadline
+                || new Date(),
+
+                priority:
+                parsedData.priority
+                || 'Medium',
+
+                specifications:
+                parsedData.specifications || {},
+
+                description:
+                parsedData.description || '',
+
+                createdBy:
+                req.user.id,
+
+                workflow: {
+
+                    currentStage:
+                    'Received',
+
+                    progress: 10,
+
+                    estimatedCompletion:
+                    parsedData.deadline
+                    || new Date(),
+                },
+            });
 
 
 
-    if (
-        parsedData.action ===
-        'quality_update'
-    ) {
 
-        const quality =
-        await QualityLog.create({
+            return res.status(201).json(
 
-            orderId:
-            parsedData.orderId,
+                buildAIResponse({
 
-            note:
-            parsedData.qualityNote,
+                    action:
+                    'create_order',
 
-            createdBy:
-            req.user.id,
-        });
+                    severity:
+                    'success',
 
+                    title:
+                    'Manufacturing Order Created',
 
-        const order =
-        await Order.findById(
-            parsedData.orderId
-        );
+                    description:
+                    `Order ${order.orderNumber} successfully created.`,
+
+                    data: order,
+                })
+            );
+        }
 
 
-        if (order) {
+
+
+        // ==========================================
+        // UPDATE STATUS
+        // ==========================================
+
+        if (
+            parsedData.action ===
+            'update_status'
+        ) {
+
+            const order =
+            await Order.findOne({
+
+                orderNumber:
+                parsedData.orderNumber,
+            });
+
+
+
+
+            if (!order) {
+
+                return res.status(404).json({
+
+                    success: false,
+
+                    action:
+                    'update_status',
+
+                    severity:
+                    'error',
+
+                    title:
+                    'Order Not Found',
+
+                    description:
+                    `No order found with number ${parsedData.orderNumber}`,
+                });
+            }
+
+
+
+
+            order.status =
+            parsedData.status;
+
+
+
+
+            const progressMap = {
+
+                "Received": 10,
+
+                "In Review": 25,
+
+                "Accepted": 40,
+
+                "Manufacturing": 70,
+
+                "Quality Check": 85,
+
+                "Packaging": 92,
+
+                "Dispatched": 97,
+
+                "Delivered": 100,
+
+                "Rejected": 0,
+            };
+
+
+
+
+            order.workflow.progress =
+            progressMap[
+                parsedData.status
+            ] || 0;
+
+
+
+
+            order.workflow.currentStage =
+            parsedData.status;
+
+
+
+
+            await order.save();
+
+
+
+
+            return res.status(200).json(
+
+                buildAIResponse({
+
+                    action:
+                    'update_status',
+
+                    severity:
+                    'info',
+
+                    title:
+                    'Workflow Status Updated',
+
+                    description:
+                    `${order.orderNumber} moved to ${parsedData.status}.`,
+
+                    data: order,
+                })
+            );
+        }
+
+
+
+
+        // ==========================================
+        // QUALITY UPDATE
+        // ==========================================
+
+        if (
+            parsedData.action ===
+            'quality_update'
+        ) {
+
+            const order =
+            await Order.findOne({
+
+                orderNumber:
+                parsedData.orderNumber,
+            });
+
+
+
+
+            if (!order) {
+
+                return res.status(404).json({
+
+                    success: false,
+
+                    action:
+                    'quality_update',
+
+                    severity:
+                    'error',
+
+                    title:
+                    'Order Not Found',
+
+                    description:
+                    `No order found with number ${parsedData.orderNumber}`,
+                });
+            }
+
+
+
+
+            const quality =
+            await QualityLog.create({
+
+                orderId:
+                order._id,
+
+                note:
+                parsedData.qualityNote,
+
+                createdBy:
+                req.user.id,
+            });
+
+
+
 
             order.latestQualityNote =
             parsedData.qualityNote;
 
             await order.save();
+
+
+
+
+            return res.status(201).json(
+
+                buildAIResponse({
+
+                    action:
+                    'quality_update',
+
+                    severity:
+                    'success',
+
+                    title:
+                    'Quality Inspection Logged',
+
+                    description:
+                    `Inspection logged for ${order.orderNumber}.`,
+
+                    data: {
+
+                        quality,
+
+                        order,
+                    },
+                })
+            );
         }
 
 
-        return res.status(201).json({
-
-            success: true,
-
-            type:
-            'quality_logged',
-
-            message:
-            'Quality report logged successfully',
-
-            quality,
-        });
-    }
 
 
-
-    if (
-        parsedData.action ===
-        'get_orders'
-    ) {
-
-        const orders =
-        await Order.find()
-        .sort({
-            createdAt: -1,
-        });
-
-
-        return res.status(200).json({
-
-            success: true,
-
-            type:
-            'all_orders',
-
-            totalOrders:
-            orders.length,
-
-            orders,
-        });
-    }
-
-
-
-    if (
-        parsedData.action ===
-        'filter_orders'
-    ) {
-
-        const filter = {};
-
+        // ==========================================
+        // GET ORDERS
+        // ==========================================
 
         if (
-            parsedData.status
+            parsedData.action ===
+            'get_orders'
         ) {
 
-            filter.status =
-            parsedData.status;
+            const orders =
+            await Order.find()
+            .sort({
+                createdAt: -1,
+            });
+
+
+
+
+            return res.status(200).json(
+
+                buildAIResponse({
+
+                    action:
+                    'get_orders',
+
+                    severity:
+                    'info',
+
+                    title:
+                    'Orders Retrieved',
+
+                    description:
+                    `${orders.length} orders found.`,
+
+                    data: orders,
+                })
+            );
         }
 
+
+
+
+        // ==========================================
+        // FILTER ORDERS
+        // ==========================================
 
         if (
-            parsedData.priority
+            parsedData.action ===
+            'filter_orders'
         ) {
 
-            filter.priority =
-            parsedData.priority;
+            const filter = {};
+
+
+
+
+            if (
+                parsedData.status
+            ) {
+
+                filter.status =
+                parsedData.status;
+            }
+
+
+
+
+            if (
+                parsedData.priority
+            ) {
+
+                filter.priority =
+                parsedData.priority;
+            }
+
+
+
+
+            const orders =
+            await Order.find(filter)
+            .sort({
+                createdAt: -1,
+            });
+
+
+
+
+            return res.status(200).json(
+
+                buildAIResponse({
+
+                    action:
+                    'filter_orders',
+
+                    severity:
+                    'info',
+
+                    title:
+                    'Matching Orders Found',
+
+                    description:
+                    `${orders.length} matching orders identified.`,
+
+                    data: orders,
+                })
+            );
         }
 
 
-        const orders =
-        await Order.find(filter)
-        .sort({
-            createdAt: -1,
+
+
+        // ==========================================
+        // ANALYTICS
+        // ==========================================
+
+        if (
+            parsedData.action ===
+            'analytics'
+        ) {
+
+            const totalOrders =
+            await Order.countDocuments();
+
+            const acceptedOrders =
+            await Order.countDocuments({
+                status: 'Accepted',
+            });
+
+            const reviewOrders =
+            await Order.countDocuments({
+                status: 'In Review',
+            });
+
+            const receivedOrders =
+            await Order.countDocuments({
+                status: 'Received',
+            });
+
+
+
+
+            return res.status(200).json(
+
+                buildAIResponse({
+
+                    action:
+                    'analytics',
+
+                    severity:
+                    'info',
+
+                    title:
+                    'Operational Analytics',
+
+                    description:
+                    'Enterprise analytics generated successfully.',
+
+                    data: {
+
+                        totalOrders,
+
+                        acceptedOrders,
+
+                        reviewOrders,
+
+                        receivedOrders,
+                    },
+                })
+            );
+        }
+
+
+
+
+        // ==========================================
+        // UNKNOWN ACTION
+        // ==========================================
+
+        return res.status(400).json({
+
+            success: false,
+
+            action:
+            'unknown',
+
+            severity:
+            'warning',
+
+            title:
+            'Unknown Request',
+
+            description:
+            'AI could not understand the request.',
         });
 
+    } catch (error) {
 
-        return res.status(200).json({
+        console.log(
+            'AI CHAT ERROR:',
+            error
+        );
 
-            success: true,
 
-            type:
-            'filtered_orders',
 
-            totalOrders:
-            orders.length,
 
-            orders,
+        return res.status(500).json({
+
+            success: false,
+
+            action:
+            'server_error',
+
+            severity:
+            'error',
+
+            title:
+            'Internal Server Error',
+
+            description:
+            'AI service temporarily unavailable.',
         });
     }
-
-
-
-    if (
-        parsedData.action ===
-        'analytics'
-    ) {
-
-        const totalOrders =
-        await Order.countDocuments();
-
-        const acceptedOrders =
-        await Order.countDocuments({
-            status: 'Accepted',
-        });
-
-        const reviewOrders =
-        await Order.countDocuments({
-            status: 'In Review',
-        });
-
-        const receivedOrders =
-        await Order.countDocuments({
-            status: 'Received',
-        });
-
-
-        return res.status(200).json({
-
-            success: true,
-
-            type:
-            'analytics',
-
-            analytics: {
-
-                totalOrders,
-
-                acceptedOrders,
-
-                reviewOrders,
-
-                receivedOrders,
-            },
-        });
-    }
-
-
-
-    return res.status(200).json({
-
-        success: true,
-
-        message:
-        'AI response processed',
-
-        aiResponse:
-        parsedData,
-    });
 });
+
 
 
 
