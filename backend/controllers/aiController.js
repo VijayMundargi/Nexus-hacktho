@@ -105,6 +105,68 @@ const generateWithRetry = async (
 
 
 // ==========================================
+// STATUS NORMALIZER
+// ==========================================
+
+const normalizeStatus = (
+    status
+) => {
+
+    if (!status) {
+        return 'Received';
+    }
+
+    const statusMap = {
+
+        approved: 'Accepted',
+        approve: 'Accepted',
+        accepted: 'Accepted',
+
+        rejected: 'Rejected',
+        reject: 'Rejected',
+
+        manufacturing: 'Manufacturing',
+
+        delivered: 'Delivered',
+
+        dispatched: 'Dispatched',
+
+        packaging: 'Packaging',
+
+        received: 'Received',
+
+        review: 'In Review',
+        "in review": 'In Review',
+
+        qualitycheck: 'Quality Check',
+        "quality check": 'Quality Check',
+
+        production: 'Manufacturing',
+
+        completed: 'Delivered',
+    };
+
+
+
+
+    const normalized =
+    status
+    .toLowerCase()
+    .trim();
+
+
+
+
+    return (
+        statusMap[normalized] ||
+        'Received'
+    );
+};
+
+
+
+
+// ==========================================
 // AI CHAT
 // ==========================================
 
@@ -135,6 +197,17 @@ async (req, res, next) => {
 
         IMPORTANT:
         Use orderNumber instead of MongoDB IDs.
+
+        Allowed statuses:
+        - Received
+        - In Review
+        - Accepted
+        - Manufacturing
+        - Quality Check
+        - Packaging
+        - Dispatched
+        - Delivered
+        - Rejected
 
         Examples:
 
@@ -381,8 +454,16 @@ async (req, res, next) => {
 
 
 
+            const finalStatus =
+            normalizeStatus(
+                parsedData.status
+            );
+
+
+
+
             order.status =
-            parsedData.status;
+            finalStatus;
 
 
 
@@ -413,14 +494,14 @@ async (req, res, next) => {
 
             order.workflow.progress =
             progressMap[
-                parsedData.status
+                finalStatus
             ] || 0;
 
 
 
 
             order.workflow.currentStage =
-            parsedData.status;
+            finalStatus;
 
 
 
@@ -444,7 +525,7 @@ async (req, res, next) => {
                     'Workflow Status Updated',
 
                     description:
-                    `${order.orderNumber} moved to ${parsedData.status}.`,
+                    `${order.orderNumber} moved to ${finalStatus}.`,
 
                     data: order,
                 })
@@ -610,7 +691,9 @@ async (req, res, next) => {
             ) {
 
                 filter.status =
-                parsedData.status;
+                normalizeStatus(
+                    parsedData.status
+                );
             }
 
 
